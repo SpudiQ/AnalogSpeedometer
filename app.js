@@ -29,8 +29,8 @@ angular.module("beamng.apps").directive("analogSpeedometer", [
 					$scope.ps = 0;
 					$scope.hp = 0;
 					$scope.kg = 0;
-					$scope.psPerKg = 0;
-					$scope.hpPerKg = 0;
+					$scope.psPerKg = "0.000";
+					$scope.hpPerKg = "0.000";
 
 					$scope.toggleExtraPanel = function (event) {
 						if (event) {
@@ -39,6 +39,44 @@ angular.module("beamng.apps").directive("analogSpeedometer", [
 						$scope.extraPanelVisible = !$scope.extraPanelVisible;
 						$scope.$applyAsync();
 					};
+
+					// Lua-запрос для получения мощности (PS) и массы (KG)
+					const LuaStats = `(function()
+						local e = powertrain.getDevicesByCategory("engine")[1]
+						local ps = 0
+						if e and e.maxPower then
+							ps = e.maxPower or 0
+						end
+						local w = 0
+						local s = obj:calcBeamStats()
+						if s and s.total_weight then
+							w = s.total_weight
+						end
+						return { powerPS = ps, weightKG = w }
+					end)()`;
+
+					function updateExtraStats() {
+						bngApi.activeObjectLua(LuaStats, function (data) {
+							const ps = Math.max(0, Math.ceil((data && data.powerPS) || 0));
+							const kg = Math.max(1, Math.ceil((data && data.weightKG) || 0)); // минимум 1, чтобы избежать деления на 0
+
+							$scope.ps = ps;
+							$scope.hp = Math.ceil(ps * 0.986); // 1 PS ≈ 0.98632 HP
+							$scope.kg = kg;
+
+							$scope.psPerKg = (ps / kg).toFixed(3);
+							$scope.hpPerKg = ($scope.hp / kg).toFixed(3);
+
+							$scope.$applyAsync();
+						});
+					}
+
+					updateExtraStats();
+
+					$scope.$on("VehicleFocusChanged", updateExtraStats);
+
+					const extraStatsInterval = setInterval(updateExtraStats, 2000);
+					// КОНЕЦ: Дополнительные показатели
 
 					// Единицы измерения
 					$scope.useMph = false;
@@ -68,21 +106,6 @@ angular.module("beamng.apps").directive("analogSpeedometer", [
 
 					$scope.gearArcDasharray = `0 ${FULL_CIRCLE}`;
 					$scope.gearArcColor = "#22c55e";
-
-					// Вспомогательные функции
-					function updateExtraStats(psVal, hpVal, kgVal) {
-						$scope.ps = psVal;
-						$scope.hp = hpVal;
-						$scope.kg = kgVal;
-						if (kgVal > 0) {
-							$scope.psPerKg = psVal / kgVal;
-							$scope.hpPerKg = hpVal / kgVal;
-						} else {
-							$scope.psPerKg = 0;
-							$scope.hpPerKg = 0;
-						}
-						$scope.$applyAsync();
-					}
 
 					function getDotColor(progress) {
 						// progress от 0 (зелёный) до 1 (красный)
@@ -192,6 +215,7 @@ angular.module("beamng.apps").directive("analogSpeedometer", [
 
 					$scope.$on("destroy", function () {
 						StreamsManager.remove(streams);
+						clearInterval(extraStatsInterval); // остановка периодического опроса
 					});
 
 					$scope.$on("streamsUpdate", function (event, streamsData) {
@@ -233,7 +257,6 @@ angular.module("beamng.apps").directive("analogSpeedometer", [
 							else if (gearRaw > 0 || gearRaw.isString()) gearDisplay = gearRaw.toString();
 							if ($scope.gearName !== gearDisplay) {
 								$scope.gearName = gearDisplay;
-								console.log(streams.engineInfo)
 								changed = true;
 							}
 						}
