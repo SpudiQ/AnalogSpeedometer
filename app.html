@@ -50,5 +50,22 @@
                 </div>
             </div> -->
         </div>
+
+        <div class="extra-panel-wrapper">
+            <div class="toggle-arrow" ng-click="toggleExtraPanel($event)">
+                <span class="arrow-icon" ng-class="{'arrow-up': extraPanelVisible, 'arrow-down': !extraPanelVisible}">▼</span>
+            </div>
+            <div class="extra-panel" ng-class="{'visible': extraPanelVisible}">
+                <div class="extra-panel-inner">
+                    <div class="extra-stats">
+                        <div class="extra-stat"><span class="extra-label">PS:</span> <span class="extra-value">{{ ps | number:0 }}</span></div>
+                        <div class="extra-stat"><span class="extra-label">HP:</span> <span class="extra-value">{{ hp | number:0 }}</span></div>
+                        <div class="extra-stat"><span class="extra-label">KG:</span> <span class="extra-value">{{ kg | number:0 }}</span></div>
+                        <div class="extra-stat"><span class="extra-label">PS/KG:</span> <span class="extra-value">{{ psPerKg | number:2 }}</span></div>
+                        <div class="extra-stat"><span class="extra-label">HP/KG:</span> <span class="extra-value">{{ hpPerKg | number:2 }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

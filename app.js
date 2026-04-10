@@ -24,6 +24,22 @@ angular.module("beamng.apps").directive("analogSpeedometer", [
 					$scope.gearName = "N";
 					$scope.maxRpm = 7000;	// стандартное значение, потом обновится из electris.maxrpm
 
+					// Дополнительные показатели
+					$scope.extraPanelVisible = false;
+					$scope.ps = 0;
+					$scope.hp = 0;
+					$scope.kg = 0;
+					$scope.psPerKg = 0;
+					$scope.hpPerKg = 0;
+
+					$scope.toggleExtraPanel = function (event) {
+						if (event) {
+							event.stopPropagation(); // чтобы не переключать тему
+						}
+						$scope.extraPanelVisible = !$scope.extraPanelVisible;
+						$scope.$applyAsync();
+					};
+
 					// Единицы измерения
 					$scope.useMph = false;
 					$scope.speedUnit = "km/h";
@@ -54,6 +70,20 @@ angular.module("beamng.apps").directive("analogSpeedometer", [
 					$scope.gearArcColor = "#22c55e";
 
 					// Вспомогательные функции
+					function updateExtraStats(psVal, hpVal, kgVal) {
+						$scope.ps = psVal;
+						$scope.hp = hpVal;
+						$scope.kg = kgVal;
+						if (kgVal > 0) {
+							$scope.psPerKg = psVal / kgVal;
+							$scope.hpPerKg = hpVal / kgVal;
+						} else {
+							$scope.psPerKg = 0;
+							$scope.hpPerKg = 0;
+						}
+						$scope.$applyAsync();
+					}
+
 					function getDotColor(progress) {
 						// progress от 0 (зелёный) до 1 (красный)
 						if (progress >= 0.99) return "#ff0000";
@@ -157,7 +187,7 @@ angular.module("beamng.apps").directive("analogSpeedometer", [
 					};
 
 					// Тянем данные
-					const streams = ["electrics"];
+					const streams = ["electrics", "engineInfo"];
 					StreamsManager.add(streams);
 
 					$scope.$on("destroy", function () {
@@ -203,6 +233,7 @@ angular.module("beamng.apps").directive("analogSpeedometer", [
 							else if (gearRaw > 0 || gearRaw.isString()) gearDisplay = gearRaw.toString();
 							if ($scope.gearName !== gearDisplay) {
 								$scope.gearName = gearDisplay;
+								console.log(streams.engineInfo)
 								changed = true;
 							}
 						}
