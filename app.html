@@ -1,0 +1,54 @@
+<div style="width: 100%; height: 100%;" class="bngApp">
+    <link type="text/css" rel="stylesheet" href="/ui/modules/apps/AnalogSpeedometer/app.css" />
+
+    <div class="speedo-wrap" ng-click="toggleTheme($event)" ng-class="{'white-theme': isWhiteTheme}">
+        <!-- Мигающий оверлей при превышении maxRpm -->
+        <div class="flash-overlay" ng-class="{'flash-active': isFlashing}"></div>
+
+        <!-- Круг с передачей -->
+        <div class="gear-circle">
+            <svg class="gear-arc-svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="44" 
+                        fill="none" 
+                        stroke="#2a2a2a" 
+                        stroke-width="8" 
+                        stroke-dasharray="262.64 13.82" 
+                        stroke-dashoffset="-65.66" 
+                        stroke-linecap="butt" />
+                <circle cx="50" cy="50" r="44" 
+                        fill="none" 
+                        stroke="{{ gearArcColor }}" 
+                        stroke-width="8" 
+                        stroke-dasharray="{{ gearArcDasharray }}" 
+                        stroke-dashoffset="-65.66" 
+                        stroke-linecap="butt" 
+                        style="transition: stroke-dasharray 0.05s linear, stroke 0.1s;" />
+            </svg>
+            <div class="gear-letter">{{ gearName }}</div>
+        </div>
+
+        <!-- Правая панель -->
+        <div class="right-panel">
+            <div class="dot-row">
+                <div class="dot" ng-repeat="dot in dots track by $index" ng-style="dot.style"></div>
+            </div>
+            <div class="info-row">
+                <div class="stat-block" ng-click="toggleUnits()" style="cursor: pointer;">
+                    <div class="stat-label">{{ speedUnit }}</div>
+                    <div class="stat-value speed">{{ displayedSpeed | number:0 }}</div>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">RPM</div>
+                    <div class="stat-value rpm-val">{{ rpm | number:0 }}</div>
+                </div>
+            </div>
+            <!-- <div class="rpm-bar-row">
+                <div class="rpm-bar-track">
+                    <div class="rpm-bar-fill" 
+                         ng-style="{width: ( (rpm / maxRpm) * 100 ) + '%', background: rpmBarColor}">
+                    </div>
+                </div>
+            </div> -->
+        </div>
+    </div>
+</div>
